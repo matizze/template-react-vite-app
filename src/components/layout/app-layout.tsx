@@ -1,0 +1,20 @@
+import type { ComponentProps, ReactNode } from 'react'
+import { cn } from '@/lib/utils'
+
+type AppLayoutProps = ComponentProps<'div'> & {
+  children: ReactNode
+}
+
+export function AppLayout({ children, className, ...props }: AppLayoutProps) {
+  return (
+    <div
+      className={cn(
+        'flex min-h-[100dvh] w-full flex-col bg-background text-foreground',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  )
+}
