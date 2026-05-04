@@ -13,7 +13,11 @@ export interface IUseCase<TInput, TOutput> {
 // http-client.ts
 export const HttpMethod = { GET, POST, PUT, PATCH, DELETE } as const
 export interface HttpRequest<TBody = unknown> {
-  method, endpoint, body?, query?, headers?
+  method
+  endpoint
+  body?
+  query?
+  headers?
 }
 export interface IHttpClient {
   sendRequest<TResponse, TBody = unknown>(req: HttpRequest<TBody>): Promise<TResponse>
@@ -21,20 +25,31 @@ export interface IHttpClient {
 
 // db.ts
 export interface IAppDB {
-  tasks: { toArray, get, add, delete, update, clear, put }  // assinaturas Dexie-like
+  tasks: { toArray; get; add; delete; update; clear; put } // assinaturas Dexie-like
 }
 ```
 
 ## Schemas (`src/types/schemas/`)
+
 Entidades de domínio puras:
 
 ```ts
 // user.ts
-export interface User { id: string; email: string; name: string }
+export interface User {
+  id: string
+  email: string
+  name: string
+}
 
 // task.ts
 export interface Task {
-  id, title, description, completed, user_id, created_at, updated_at: string
+  id
+  title
+  description
+  completed
+  user_id
+  created_at
+  updated_at: string
 }
 ```
 
@@ -54,7 +69,9 @@ Exemplo (`services/tasks/services/create-task.usecase.ts`):
 ```ts
 export class CreateTaskUseCase implements IUseCase<UseCaseInput, UseCaseOutput> {
   private client: IHttpClient
-  constructor(client: IHttpClient) { this.client = client }
+  constructor(client: IHttpClient) {
+    this.client = client
+  }
 
   async execute(input: UseCaseInput): Promise<UseCaseOutput> {
     if (!input.title?.trim()) throw new Error('Title is required')
@@ -68,6 +85,7 @@ export class CreateTaskUseCase implements IUseCase<UseCaseInput, UseCaseOutput> 
 ```
 
 ## Convenções dos use-cases
+
 - Filename: `<verb-noun>.usecase.ts` (kebab-case).
 - Classe: `<VerbNoun>UseCase` (PascalCase).
 - Sempre exporta `UseCaseInput` e `UseCaseOutput` para reuso em models de páginas.
@@ -82,24 +100,26 @@ Cada feature exporta uma função-builder curried que recebe `http` e retorna um
 
 ```ts
 // services/tasks/index.ts
-import type { IHttpClient } from "@/types/contracts/http-client"
-import type { NamespaceBuilder } from "@/lib/factory"
+import type { IHttpClient } from '@/types/contracts/http-client'
+import type { NamespaceBuilder } from '@/lib/factory'
 
 export const registerTasks = (http: IHttpClient) => (b: NamespaceBuilder) =>
-  b.register("list",   new ListTasksUseCase(http))
-   .register("get",    new GetTaskUseCase(http))
-   .register("create", new CreateTaskUseCase(http))
-   .register("update", new UpdateTaskUseCase(http))
-   .register("delete", new DeleteTaskUseCase(http))
-   .register("toggle", new ToggleTaskUseCase(http))
+  b
+    .register('list', new ListTasksUseCase(http))
+    .register('get', new GetTaskUseCase(http))
+    .register('create', new CreateTaskUseCase(http))
+    .register('update', new UpdateTaskUseCase(http))
+    .register('delete', new DeleteTaskUseCase(http))
+    .register('toggle', new ToggleTaskUseCase(http))
 ```
 
 ```ts
 // services/auth/index.ts
 export const registerAuth = (http: IHttpClient) => (b: NamespaceBuilder) =>
-  b.register("signIn",         new SignInUseCase(http))
-   .register("signOut",        new SignOutUseCase(http))
-   .register("getCurrentUser", new GetCurrentUserUseCase(http))
+  b
+    .register('signIn', new SignInUseCase(http))
+    .register('signOut', new SignOutUseCase(http))
+    .register('getCurrentUser', new GetCurrentUserUseCase(http))
 ```
 
 > Nomes dos use-cases dentro do namespace ficam **curtos** (sem o prefixo do domínio) — `tasks.list`, não `tasks.listTasks`.
@@ -107,10 +127,10 @@ export const registerAuth = (http: IHttpClient) => (b: NamespaceBuilder) =>
 ## Composição central (`src/services/index.ts`)
 
 ```ts
-import type { IHttpClient } from "@/types/contracts/http-client"
-import { ServiceFactory } from "@/lib/factory"
-import { registerAuth } from "./auth"
-import { registerTasks } from "./tasks"
+import type { IHttpClient } from '@/types/contracts/http-client'
+import { ServiceFactory } from '@/lib/factory'
+import { registerAuth } from './auth'
+import { registerTasks } from './tasks'
 
 export interface ServiceFactoryDeps {
   httpClient: IHttpClient
@@ -118,8 +138,8 @@ export interface ServiceFactoryDeps {
 
 export function createServices({ httpClient }: ServiceFactoryDeps) {
   return new ServiceFactory()
-    .ns("auth", registerAuth(httpClient))
-    .ns("tasks", registerTasks(httpClient))
+    .ns('auth', registerAuth(httpClient))
+    .ns('tasks', registerTasks(httpClient))
     .build()
 }
 
@@ -131,11 +151,13 @@ export type Services = ReturnType<typeof createServices>
 ## Use-cases existentes
 
 **Auth (namespace `auth`):**
+
 - `signIn({ email, password })` → `{ user, token }`
 - `signOut()` → `void`
 - `getCurrentUser()` → `User`
 
 **Tasks (namespace `tasks`):**
+
 - `list()` → `Task[]`
 - `get({ id })` → `Task`
 - `create({ title, description? })` → `Task`
@@ -163,18 +185,22 @@ Para auth, prefira o hook `useAuth()` que já encapsula query+mutations.
 export class UIError extends Error {
   code: string
   constructor(code: string, message: string) {
-    super(message); this.name = 'UIError'; this.code = code
+    super(message)
+    this.name = 'UIError'
+    this.code = code
   }
 }
 ```
 
 Códigos lançados pelo mock atual:
+
 - `UNAUTHENTICATED` — falta cookie em `/auth/me`, `/tasks/*`.
 - `INVALID_CREDENTIALS` — email/senha errados.
 - `TASK_NOT_FOUND` — id inexistente ou de outro usuário.
 - `TITLE_REQUIRED` — POST /tasks sem título.
 
 Padrão em models/views:
+
 ```ts
 onError: (err: unknown) => {
   if (err instanceof UIError) setErrorMessage(err.message)
@@ -184,7 +210,9 @@ onError: (err: unknown) => {
 ```
 
 ## Mock HTTP (`src/http/mock.client.ts`)
+
 Implementa `IHttpClient`. Diferenças em relação ao padrão "stateless":
+
 - Recebe `{ db: IAppDB }` no construtor — atua como pseudo-servidor lendo/escrevendo Dexie.
 - Mantém credenciais via `document.cookie` (`app_token`).
 - Validação de auth em todas as rotas `/tasks/*` via `getAuthenticatedUser()` que lê o cookie.
@@ -192,6 +220,7 @@ Implementa `IHttpClient`. Diferenças em relação ao padrão "stateless":
 - Latência simulada 250–500ms.
 
 Para trocar por implementação real (axios/fetch):
+
 1. Criar `src/http/api.client.ts` implementando `IHttpClient`.
 2. Substituir em `service.provider.tsx`:
    ```ts
@@ -205,10 +234,13 @@ Para trocar por implementação real (axios/fetch):
 Nenhum use-case nem página precisa mudar.
 
 ## DB singleton (`src/lib/db.ts`)
+
 `AppDB extends Dexie implements IAppDB`. Banco: `'app-db'`. Schema atual:
+
 ```ts
 AppDB.getInstance({ tasks: 'id, user_id' })
 ```
+
 - `'id'` é a primary key.
 - `'user_id'` é índice secundário (queries futuras por usuário ficam baratas).
 

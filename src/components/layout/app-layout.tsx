@@ -8,10 +8,7 @@ type AppLayoutProps = ComponentProps<'div'> & {
 export function AppLayout({ children, className, ...props }: AppLayoutProps) {
   return (
     <div
-      className={cn(
-        'flex min-h-[100dvh] w-full flex-col bg-background text-foreground',
-        className,
-      )}
+      className={cn('bg-background text-foreground flex min-h-[100dvh] w-full flex-col', className)}
       {...props}
     >
       {children}

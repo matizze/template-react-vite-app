@@ -25,8 +25,7 @@ export function useTasksModel() {
     return { total: list.length, completed, pending: list.length - completed }
   }, [list])
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
 
   const createMutation = useMutation({
     mutationFn: (input: CreateTaskSchema) => tasks.create(input),
@@ -53,10 +52,7 @@ export function useTasksModel() {
     tasks: list,
     stats,
     isLoading: tasksQuery.isLoading,
-    isMutating:
-      createMutation.isPending ||
-      toggleMutation.isPending ||
-      deleteMutation.isPending,
+    isMutating: createMutation.isPending || toggleMutation.isPending || deleteMutation.isPending,
     handleCreate: (data: CreateTaskSchema) => createMutation.mutate(data),
     handleToggle: (id: string) => toggleMutation.mutate(id),
     handleRemove: (id: string) => deleteMutation.mutate(id),

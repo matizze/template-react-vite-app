@@ -8,9 +8,7 @@ interface CookieOptions {
 export function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null
   const prefix = `${encodeURIComponent(name)}=`
-  const match = document.cookie
-    .split('; ')
-    .find((row) => row.startsWith(prefix))
+  const match = document.cookie.split('; ').find((row) => row.startsWith(prefix))
   return match ? decodeURIComponent(match.slice(prefix.length)) : null
 }
 

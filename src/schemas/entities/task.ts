@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 export const taskSchema = z.object({
   id: z.string(),
@@ -8,6 +8,6 @@ export const taskSchema = z.object({
   user_id: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
-});
+})
 
-export type TaskSchema = z.infer<typeof taskSchema>;
+export type TaskSchema = z.infer<typeof taskSchema>

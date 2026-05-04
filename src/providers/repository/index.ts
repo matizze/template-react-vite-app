@@ -1,2 +1,2 @@
-export { RepositoryProvider } from "./provider";
-export { useRepositories } from "./use-repositories";
+export { RepositoryProvider } from './provider'
+export { useRepositories } from './use-repositories'

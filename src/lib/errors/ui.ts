@@ -1,9 +1,9 @@
 export class UIError extends Error {
-  code: string;
+  code: string
 
   constructor(code: string, message: string) {
-    super(message);
-    this.name = "UIError";
-    this.code = code;
+    super(message)
+    this.name = 'UIError'
+    this.code = code
   }
 }

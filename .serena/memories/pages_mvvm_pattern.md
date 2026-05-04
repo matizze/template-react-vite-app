@@ -11,6 +11,7 @@ pages/<feature>/
 ```
 
 ## index.tsx — sempre minimalista
+
 ```tsx
 import { useTasksModel } from './model'
 import { TasksView } from './view'
@@ -22,7 +23,9 @@ export default function TasksPage() {
 ```
 
 ## model.ts — toda a lógica
+
 Padrões:
+
 - Importa `useServices`, `useAuth` (quando necessário), `useQuery`/`useMutation`/`useQueryClient`, `useLocation`/`useParams` de wouter.
 - Define funções puras helper **fora** do hook quando há transformação sem state.
 - Usa `useState` para UI state local (form, modais).
@@ -31,6 +34,7 @@ Padrões:
 - Retorna um objeto plano com queries, valores derivados, e handlers.
 
 Esqueleto (visto em `pages/tasks/model.ts`):
+
 ```ts
 export function useTasksModel() {
   const [, navigate] = useLocation()
@@ -50,12 +54,10 @@ export function useTasksModel() {
     return { total: tasks.length, completed, pending: tasks.length - completed }
   }, [tasks])
 
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
 
   const createMutation = useMutation({
-    mutationFn: (input: { title: string; description: string }) =>
-      create.execute(input),
+    mutationFn: (input: { title: string; description: string }) => create.execute(input),
     onSuccess: invalidate,
   })
 
@@ -66,7 +68,18 @@ export function useTasksModel() {
     navigate('/login', { replace: true })
   }
 
-  return { user, tasks, stats, isLoading, isMutating, handleCreate, handleToggle, handleRemove, handleSignOut, isSigningOut }
+  return {
+    user,
+    tasks,
+    stats,
+    isLoading,
+    isMutating,
+    handleCreate,
+    handleToggle,
+    handleRemove,
+    handleSignOut,
+    isSigningOut,
+  }
 }
 ```
 
@@ -75,6 +88,7 @@ export function useTasksModel() {
 > **Consumo de services**: sempre via namespace — `useServices().auth.signIn`, `useServices().tasks.list`. Use destructure com rename quando o nome conflita (`delete: remove`).
 
 ## view.tsx — só JSX
+
 - Tipo das props **sempre** é `ReturnType<typeof useXxxModel>`. Sem interface manual.
 - Faz **destructuring** logo no início.
 - Decide entre `<XxxSkeleton />`, `<XxxErrorSkeleton />` e o conteúdo real, baseado nos flags da query (`isLoading`, `isError`, `data`).
@@ -84,22 +98,25 @@ export function useTasksModel() {
 
 ```tsx
 export function TasksView(props: ReturnType<typeof useTasksModel>) {
-  const { user, tasks, stats, isLoading, /* ... */ } = props
+  const { user, tasks, stats, isLoading /* ... */ } = props
   return <AppLayout>{/* ... */}</AppLayout>
 }
 ```
 
 ## skeleton.tsx — loading + error
+
 - Mantém o mesmo layout (AppLayout + Navbar) para evitar flash.
 - Pode aceitar `inline?: boolean` para variantes embutidas (ex.: `TasksSkeleton inline` substitui só a lista, sem refazer o shell).
 - Usa `<Skeleton />` do shadcn.
 
 ## Convenções de queryKey
+
 - Tuple `[entidade, ...identificadores]`: `['auth', 'me']`, `['tasks']`, `['tasks', id]`.
 - Mutations chamam `queryClient.invalidateQueries({ queryKey: ['tasks'] })` no `onSuccess`.
 - `signOut` chama `queryClient.removeQueries()` (limpa tudo) — evita vazar dados de usuário ao trocar conta.
 
 ## Mutations padrão
+
 ```ts
 const createMutation = useMutation({
   mutationFn: (input) => create.execute(input),
@@ -113,10 +130,12 @@ const createMutation = useMutation({
 ```
 
 ## Páginas existentes
+
 - `pages/login/` — formulário sign-in. Modelo redireciona pra `/tasks` quando autenticado (via `useEffect`).
 - `pages/tasks/` — CRUD de tarefas. Skeleton tem variante `inline` para o estado de loading da lista.
 
 ## Adicionar nova página (receita)
+
 1. `src/pages/<feature>/index.tsx` — orquestrador (4 linhas).
 2. `src/pages/<feature>/model.ts` — hook `useXxxModel()`.
 3. `src/pages/<feature>/view.tsx` — `XxxView(props: ReturnType<typeof useXxxModel>)`.

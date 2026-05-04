@@ -1,6 +1,7 @@
 # Project Overview — template-react-vite-app
 
 Boilerplate React 19 + TypeScript + Vite com **autenticação mockada (JWT em cookie)** e **CRUD de tarefas (HTTP mock + Dexie por trás)**. Pensado como ponto de partida para apps que precisam de:
+
 - Camada de domínio testável (use-cases com DI)
 - HTTP cliente plugável (mock → real sem mexer nos use-cases)
 - Persistência local opcional via Dexie
@@ -8,6 +9,7 @@ Boilerplate React 19 + TypeScript + Vite com **autenticação mockada (JWT em co
 - shadcn/ui (style `radix-luma`, baseColor `neutral`)
 
 ## Stack principal
+
 - **React 19** + **TypeScript ~6.0** + **Vite 8**.
 - **React Compiler** habilitado via `@rolldown/plugin-babel` + `babel-plugin-react-compiler` (preset em `vite.config.ts`).
 - **Tailwind CSS 4** via `@tailwindcss/vite` (sem `tailwind.config.js`; tokens em `src/index.css` com `@theme inline`).
@@ -19,12 +21,14 @@ Boilerplate React 19 + TypeScript + Vite com **autenticação mockada (JWT em co
 - **Radix UI** primitives (`radix-ui` v1.4 monolítico).
 
 ## Convenções de tooling
+
 - Alias `@/*` → `./src/*` configurado em `tsconfig.json`, `tsconfig.app.json` e `vite.config.ts`.
 - ESLint flat config: `js.recommended` + `tseslint.recommended` + `react-hooks.recommended` + `react-refresh/vite`. Override em `src/components/ui/**` desliga `react-refresh/only-export-components` (shadcn co-exporta variants junto do componente).
 - TS strict-ish: `noUnusedLocals`, `noUnusedParameters`, `verbatimModuleSyntax`, `erasableSyntaxOnly`, `moduleResolution: bundler`.
 - Scripts: `dev` (vite), `build` (`tsc -b && vite build`), `lint`, `preview`.
 
 ## Layout de diretórios
+
 ```
 src/
   main.tsx               # entry: monta <AppProvider><App/></AppProvider>
@@ -74,12 +78,14 @@ public/
 ```
 
 ## Páginas implementadas
+
 - `/login` — `LoginPage` (formulário sign-in; redireciona pra `/tasks` se já logado).
 - `/tasks` — `TasksPage` protegida (CRUD: criar, marcar feita, remover).
 - `/` — redireciona pra `/tasks`.
 - `*` — 404 simples.
 
 ## Características arquiteturais que guiam o template
+
 1. **MVVM por página** (index = thin orchestrator; model = hook com queries/mutations/handlers; view = puro JSX recebendo `ReturnType<typeof useXxxModel>`; skeleton = loading/error).
 2. **Use-cases com DI por construtor** seguindo `IUseCase<Input, Output>`.
 3. **ServiceFactory com namespacing tipado** (em `src/lib/factory.ts`) — `new ServiceFactory().ns("auth", registerAuth(http)).ns("tasks", registerTasks(http)).build()` produz `{ auth: {...}, tasks: {...} }` totalmente tipado.
@@ -90,11 +96,13 @@ public/
 8. **Erros tipados** (`UIError` em `src/lib/errors/ui-error.ts` com `code`) consumidos pelas mutations para UX consistente. Códigos atuais: `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `TASK_NOT_FOUND`, `TITLE_REQUIRED`.
 
 ## Consumo nas páginas (com namespacing)
+
 ```ts
 const { signIn, signOut, getCurrentUser } = useServices().auth
 const { list, create, toggle, delete: remove } = useServices().tasks
 ```
 
 ## Credenciais mock
+
 - Email: `admin@app.com`
 - Senha: `password`
