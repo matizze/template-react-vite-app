@@ -1,0 +1,17 @@
+{
+  "format_on_save": "on",
+  "formatter": "prettier",
+  "languages": {
+    "TypeScript": { "format_on_save": "on", "formatter": "prettier" },
+    "TSX": { "format_on_save": "on", "formatter": "prettier" },
+    "JavaScript": { "format_on_save": "on", "formatter": "prettier" },
+    "JSON": { "format_on_save": "on", "formatter": "prettier" },
+    "JSONC": { "format_on_save": "on", "formatter": "prettier" },
+    "CSS": { "format_on_save": "on", "formatter": "prettier" },
+    "HTML": { "format_on_save": "on", "formatter": "prettier" },
+    "Markdown": { "format_on_save": "on", "formatter": "prettier" },
+  },
+  "code_actions_on_format": {
+    "source.fixAll.eslint": true,
+  },
+}
