@@ -16,7 +16,7 @@ src/components/
 - **Filenames**: `kebab-case.tsx` (ex.: `task-item.tsx`, `sign-in-form.tsx`).
 - **Exports nomeados**: PascalCase. Páginas usam `default export` (importadas pelo router); demais usam named exports.
 - **1 componente por arquivo**, exceto skeletons (loading + error juntos).
-- **Imports absolutos via `@/`** ao cruzar camadas (`@/components/...`, `@/services/...`, `@/lib/utils`, `@/hooks/...`).
+- **Imports absolutos via `@/`** ao cruzar camadas (`@/components/...`, `@/services`, `@/lib/utils`, `@/lib/factory`, `@/types/contracts/...`, `@/types/schemas/...`, `@/hooks/...`).
 - **Imports relativos** dentro da mesma feature (`./model`, `./view`, `./task-item`).
 
 ## Padrão de Props
@@ -41,7 +41,7 @@ Padrão shadcn: função componente nomeada + `data-slot="..."` para CSS targeti
 - Demais shadcn primitives (`drawer`, `sheet`, `dialog`, `tabs`, etc.) ficam disponíveis para uso, mas não são consumidos pelas páginas atuais — adicione/remova conforme necessidade. `pnpm dlx shadcn@latest add <component>` re-instala/atualiza.
 
 ## Hooks customizados (`src/hooks/`)
-- **`useServices()`** — `useContext(ServiceContext)`, throw se fora do provider. Único ponto de acesso aos use-cases.
+- **`useServices()`** — `useContext(ServiceContext)`, throw se fora do provider. Retorna o objeto namespaced `{ auth: {...}, tasks: {...} }`. Acesso típico: `useServices().auth.signIn`, `useServices().tasks.list`.
 - **`useAuth()`** — wrapper sobre `useQuery(['auth','me'])` + mutations `signIn`/`signOut`. Retorna `{ user, isAuthenticated, isLoading, signIn, signOut, isSigningIn, isSigningOut, signInError }`.
 - **`useDebounce<T>(value, delay)`** — clássico, retorna valor após delay sem mudança.
 
@@ -63,6 +63,8 @@ Padrão shadcn: função componente nomeada + `data-slot="..."` para CSS targeti
 - **`lib/utils.ts`** — `cn(...inputs)` (clsx + tailwind-merge).
 - **`lib/cookies.ts`** — `getCookie(name)`, `setCookie(name, value, options?)`, `removeCookie(name)`. SameSite=Lax, Secure quando https, Max-Age padrão 7 dias.
 - **`lib/db.ts`** — `AppDB.getInstance(schemas)` (Dexie singleton, `'app-db'`).
+- **`lib/factory.ts`** — `NamespaceBuilder` + `ServiceFactory` (infra genérica do padrão Factory com namespacing tipado; usada por `createServices`).
+- **`lib/errors/ui-error.ts`** — `UIError extends Error` com `code: string` para erros de domínio com UX consistente.
 
 ## Acessibilidade
 - `aria-label` em botões só com ícone (ver `<TaskItem>` — `Remove task`, `Mark as completed`).

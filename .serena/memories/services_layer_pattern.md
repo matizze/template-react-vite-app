@@ -1,8 +1,8 @@
-# Padrão da Camada de Services (Use-Cases + DI)
+# Padrão da Camada de Services (Use-Cases + ServiceFactory)
 
-A camada de domínio é organizada em **use-cases**, cada um implementando `IUseCase<TInput, TOutput>`. Toda dependência externa (HTTP) entra via construtor — nunca instanciada dentro do use-case.
+A camada de domínio é organizada em **use-cases**, cada um implementando `IUseCase<TInput, TOutput>`. Toda dependência externa (HTTP) entra via construtor — nunca instanciada dentro do use-case. A composição usa **ServiceFactory** com namespacing tipado.
 
-## Contratos base (`src/services/contracts/`)
+## Contratos (`src/types/contracts/`)
 
 ```ts
 // use-case.ts
@@ -25,11 +25,24 @@ export interface IAppDB {
 }
 ```
 
+## Schemas (`src/types/schemas/`)
+Entidades de domínio puras:
+
+```ts
+// user.ts
+export interface User { id: string; email: string; name: string }
+
+// task.ts
+export interface Task {
+  id, title, description, completed, user_id, created_at, updated_at: string
+}
+```
+
 ## Estrutura de uma feature de services
 
 ```
 services/<feature>/
-├── index.ts                       # createXxxServices(httpClient) → factory
+├── index.ts                       # register<Feature>(http) — builder
 ├── services/
 │   └── <verb-noun>.usecase.ts     # 1 classe por use-case
 └── types/
@@ -63,64 +76,88 @@ export class CreateTaskUseCase implements IUseCase<UseCaseInput, UseCaseOutput> 
 - Erros de domínio que precisam de UX específica → `throw new UIError(code, msg)`.
 - Inputs `void` quando não há parâmetros (ex.: `ListTasksUseCase`, `SignOutUseCase`, `GetCurrentUserUseCase`).
 
-## Factory por feature (`index.ts`)
+## Builder por feature (`<feature>/index.ts`)
+
+Cada feature exporta uma função-builder curried que recebe `http` e retorna uma função que recebe o `NamespaceBuilder`:
 
 ```ts
 // services/tasks/index.ts
-export function createTaskServices(httpClient: IHttpClient) {
-  return {
-    listTasks: new ListTasksUseCase(httpClient),
-    getTask: new GetTaskUseCase(httpClient),
-    createTask: new CreateTaskUseCase(httpClient),
-    updateTask: new UpdateTaskUseCase(httpClient),
-    deleteTask: new DeleteTaskUseCase(httpClient),
-    toggleTask: new ToggleTaskUseCase(httpClient),
-  }
-}
-```
+import type { IHttpClient } from "@/types/contracts/http-client"
+import type { NamespaceBuilder } from "@/lib/factory"
 
-## Registry agregador (`src/services/registry.ts`)
+export const registerTasks = (http: IHttpClient) => (b: NamespaceBuilder) =>
+  b.register("list",   new ListTasksUseCase(http))
+   .register("get",    new GetTaskUseCase(http))
+   .register("create", new CreateTaskUseCase(http))
+   .register("update", new UpdateTaskUseCase(http))
+   .register("delete", new DeleteTaskUseCase(http))
+   .register("toggle", new ToggleTaskUseCase(http))
+```
 
 ```ts
-export interface RegistryDeps { httpClient: IHttpClient }
+// services/auth/index.ts
+export const registerAuth = (http: IHttpClient) => (b: NamespaceBuilder) =>
+  b.register("signIn",         new SignInUseCase(http))
+   .register("signOut",        new SignOutUseCase(http))
+   .register("getCurrentUser", new GetCurrentUserUseCase(http))
+```
 
-export function createAllServices(deps: RegistryDeps) {
-  return {
-    ...createAuthServices(deps.httpClient),
-    ...createTaskServices(deps.httpClient),
-  }
+> Nomes dos use-cases dentro do namespace ficam **curtos** (sem o prefixo do domínio) — `tasks.list`, não `tasks.listTasks`.
+
+## Composição central (`src/services/index.ts`)
+
+```ts
+import type { IHttpClient } from "@/types/contracts/http-client"
+import { ServiceFactory } from "@/lib/factory"
+import { registerAuth } from "./auth"
+import { registerTasks } from "./tasks"
+
+export interface ServiceFactoryDeps {
+  httpClient: IHttpClient
 }
 
-export type ServiceContextProps = ReturnType<typeof createAllServices>
+export function createServices({ httpClient }: ServiceFactoryDeps) {
+  return new ServiceFactory()
+    .ns("auth", registerAuth(httpClient))
+    .ns("tasks", registerTasks(httpClient))
+    .build()
+}
+
+export type Services = ReturnType<typeof createServices>
 ```
+
+`Services` é `{ auth: { signIn, signOut, getCurrentUser }, tasks: { list, get, create, update, delete, toggle } }` — totalmente inferido.
 
 ## Use-cases existentes
 
-**Auth:**
+**Auth (namespace `auth`):**
 - `signIn({ email, password })` → `{ user, token }`
-- `signOut()` → `void` (mock remove cookie no servidor mock)
-- `getCurrentUser()` → `User` (lê cookie e devolve user; lança `UIError('UNAUTHENTICATED')` se ausente)
+- `signOut()` → `void`
+- `getCurrentUser()` → `User`
 
-**Tasks:**
-- `listTasks()` → `Task[]`
-- `getTask({ id })` → `Task`
-- `createTask({ title, description? })` → `Task`
-- `updateTask({ id, data: { title?, description?, completed? } })` → `Task`
-- `deleteTask({ id })` → `void`
-- `toggleTask({ id })` → `Task` (inverte `completed`)
+**Tasks (namespace `tasks`):**
+- `list()` → `Task[]`
+- `get({ id })` → `Task`
+- `create({ title, description? })` → `Task`
+- `update({ id, data: { title?, description?, completed? } })` → `Task`
+- `delete({ id })` → `void`
+- `toggle({ id })` → `Task`
 
 ## Como uma página consome
 
 ```ts
-const { signIn } = useServices()
+const { signIn } = useServices().auth
 const signInMutation = useMutation({
   mutationFn: () => signIn.execute({ email, password }),
 })
+
+const { list, create, toggle, delete: remove } = useServices().tasks
+// `delete` é palavra reservada → renomeia no destructure
 ```
 
 Para auth, prefira o hook `useAuth()` que já encapsula query+mutations.
 
-## Erros: `UIError`
+## Erros: `UIError` (`src/lib/errors/ui-error.ts`)
 
 ```ts
 export class UIError extends Error {

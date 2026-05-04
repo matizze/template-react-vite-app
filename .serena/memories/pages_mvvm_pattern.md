@@ -36,11 +36,11 @@ export function useTasksModel() {
   const [, navigate] = useLocation()
   const queryClient = useQueryClient()
   const { user, signOut, isSigningOut } = useAuth()
-  const { listTasks, createTask, toggleTask, deleteTask } = useServices()
+  const { list, create, toggle, delete: remove } = useServices().tasks
 
   const tasksQuery = useQuery({
     queryKey: TASKS_QUERY_KEY,
-    queryFn: () => listTasks.execute(),
+    queryFn: () => list.execute(),
   })
 
   const tasks = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data])
@@ -55,11 +55,11 @@ export function useTasksModel() {
 
   const createMutation = useMutation({
     mutationFn: (input: { title: string; description: string }) =>
-      createTask.execute(input),
+      create.execute(input),
     onSuccess: invalidate,
   })
 
-  // ... toggle, delete
+  // ... toggle, remove (via .delete: remove)
 
   async function handleSignOut() {
     await signOut()
@@ -71,6 +71,8 @@ export function useTasksModel() {
 ```
 
 > **Pitfall TanStack Query**: `const tasks = tasksQuery.data ?? []` cria um novo array a cada render. Se `tasks` for usado em `useMemo`/`useCallback` deps, vai disparar reexecução infinita. Memoize: `useMemo(() => tasksQuery.data ?? [], [tasksQuery.data])`.
+
+> **Consumo de services**: sempre via namespace — `useServices().auth.signIn`, `useServices().tasks.list`. Use destructure com rename quando o nome conflita (`delete: remove`).
 
 ## view.tsx — só JSX
 - Tipo das props **sempre** é `ReturnType<typeof useXxxModel>`. Sem interface manual.
@@ -100,7 +102,7 @@ export function TasksView(props: ReturnType<typeof useTasksModel>) {
 ## Mutations padrão
 ```ts
 const createMutation = useMutation({
-  mutationFn: (input) => createTask.execute(input),
+  mutationFn: (input) => create.execute(input),
   onSuccess: invalidate,
   onError: (err: unknown) => {
     if (err instanceof UIError) setErrorMessage(err.message)

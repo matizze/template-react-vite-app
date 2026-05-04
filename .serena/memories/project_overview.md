@@ -35,19 +35,28 @@ src/
     query.provider.tsx
     service.provider.tsx
     service.context.ts
+  types/
+    contracts/           # IUseCase, IHttpClient, IAppDB (interfaces puras)
+    schemas/             # User, Task (entidades de domínio)
   services/
-    contracts/           # IUseCase, IHttpClient, IAppDB
-    auth/                # SignIn, SignOut, GetCurrentUser
-    tasks/               # List, Get, Create, Update, Delete, Toggle
-    schemas/             # User, Task
-    errors/              # UIError (code + message)
-    registry.ts          # createAllServices({ httpClient })
+    index.ts             # createServices({ httpClient }) + Services type
+    auth/
+      index.ts           # registerAuth(http) — builder pra ServiceFactory
+      services/          # SignIn, SignOut, GetCurrentUser
+      types/
+    tasks/
+      index.ts           # registerTasks(http) — builder pra ServiceFactory
+      services/          # List, Get, Create, Update, Delete, Toggle
+      types/
   http/
     mock.client.ts       # MockHttpClient — auth + tasks (lê/escreve Dexie)
   lib/
+    factory.ts           # NamespaceBuilder + ServiceFactory (infra genérica)
     db.ts                # AppDB (Dexie singleton, db name "app-db")
     cookies.ts           # getCookie/setCookie/removeCookie
     utils.ts             # cn() (clsx + tailwind-merge)
+    errors/
+      ui-error.ts        # UIError (code + message)
   hooks/
     use-services.ts      # useContext(ServiceContext)
     use-auth.ts          # useQuery + useMutation envoltórios para auth state
@@ -73,11 +82,18 @@ public/
 ## Características arquiteturais que guiam o template
 1. **MVVM por página** (index = thin orchestrator; model = hook com queries/mutations/handlers; view = puro JSX recebendo `ReturnType<typeof useXxxModel>`; skeleton = loading/error).
 2. **Use-cases com DI por construtor** seguindo `IUseCase<Input, Output>`.
-3. **Service registry** monta todos os use-cases num único objeto fornecido via `ServiceContext`; tipo do context derivado de `ReturnType<typeof createAllServices>` (zero duplicação).
-4. **HTTP cliente plugável** com `MockHttpClient` — substituível por implementação real sem mexer em use-case nem página.
-5. **Auth via JWT em cookie** — `lib/cookies.ts` set/get/remove; mock injeta cookie `app_token` no sign-in. Implementação real ganhará envio automático com `credentials: 'include'`.
-6. **Persistência local plugável** via `IAppDB` (Dexie é detalhe, contrato é abstrato). Tasks vivem na tabela `tasks` indexada por `id` e `user_id`.
-7. **Erros tipados** (`UIError` com `code`) consumidos pelas mutations para UX consistente. Códigos atuais: `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `TASK_NOT_FOUND`, `TITLE_REQUIRED`.
+3. **ServiceFactory com namespacing tipado** (em `src/lib/factory.ts`) — `new ServiceFactory().ns("auth", registerAuth(http)).ns("tasks", registerTasks(http)).build()` produz `{ auth: {...}, tasks: {...} }` totalmente tipado.
+4. **`createServices({ httpClient })`** em `src/services/index.ts` é a composição central; tipo `Services` derivado via `ReturnType<typeof createServices>` (zero duplicação).
+5. **HTTP cliente plugável** com `MockHttpClient` — substituível por implementação real sem mexer em use-case nem página.
+6. **Auth via JWT em cookie** — `lib/cookies.ts` set/get/remove; mock injeta cookie `app_token` no sign-in. Implementação real ganhará envio automático com `credentials: 'include'`.
+7. **Persistência local plugável** via `IAppDB` (Dexie é detalhe, contrato é abstrato). Tasks vivem na tabela `tasks` indexada por `id` e `user_id`.
+8. **Erros tipados** (`UIError` em `src/lib/errors/ui-error.ts` com `code`) consumidos pelas mutations para UX consistente. Códigos atuais: `UNAUTHENTICATED`, `INVALID_CREDENTIALS`, `TASK_NOT_FOUND`, `TITLE_REQUIRED`.
+
+## Consumo nas páginas (com namespacing)
+```ts
+const { signIn, signOut, getCurrentUser } = useServices().auth
+const { list, create, toggle, delete: remove } = useServices().tasks
+```
 
 ## Credenciais mock
 - Email: `admin@app.com`

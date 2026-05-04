@@ -1,51 +1,74 @@
-import { useState, type FormEvent } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createTaskSchema, type CreateTaskSchema } from "@/schemas";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface TaskFormProps {
-  onSubmit: (data: { title: string; description: string }) => void
-  isSubmitting: boolean
+  onSubmit: (data: CreateTaskSchema) => void;
+  isSubmitting: boolean;
 }
 
 export function TaskForm({ onSubmit, isSubmitting }: TaskFormProps) {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
+  const form = useForm<CreateTaskSchema>({
+    resolver: zodResolver(createTaskSchema),
+    defaultValues: { title: "", description: "" },
+  });
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    if (!title.trim()) return
-    onSubmit({ title, description })
-    setTitle('')
-    setDescription('')
+  function handleSubmit(data: CreateTaskSchema) {
+    onSubmit(data);
+    form.reset();
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="task-title">Title</Label>
-        <Input
-          id="task-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="What needs to be done?"
-          required
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex flex-col gap-3"
+      >
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="What needs to be done?" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="task-description">Description</Label>
-        <Textarea
-          id="task-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional details…"
-          rows={3}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Optional details…"
+                  rows={3}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <Button type="submit" disabled={isSubmitting || !title.trim()}>
-        {isSubmitting ? 'Adding…' : 'Add task'}
-      </Button>
-    </form>
-  )
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Adding…" : "Add task"}
+        </Button>
+      </form>
+    </Form>
+  );
 }

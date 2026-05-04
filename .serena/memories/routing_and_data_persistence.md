@@ -78,7 +78,7 @@ Toda mutation chama no `onSuccess`.
 
 ## Persistência local — Dexie/IndexedDB
 
-**Schema** (`src/services/contracts/db.ts`):
+**Schema** (`src/types/contracts/db.ts`):
 ```ts
 export interface IAppDB {
   tasks: { toArray, get, add, delete, update, clear, put }
@@ -106,17 +106,17 @@ const httpClient = useMemo(() => MockHttpClient.create({ db }), [db])
 
 A string `'id, user_id'` é a sintaxe Dexie de schema — `id` é PK, `user_id` é índice secundário.
 
-## Schemas
+## Schemas (`src/types/schemas/`)
 
 ```ts
-// src/services/schemas/user.ts
+// user.ts
 export interface User {
   id: string
   email: string
   name: string
 }
 
-// src/services/schemas/task.ts
+// task.ts
 export interface Task {
   id: string
   title: string
@@ -157,6 +157,6 @@ export interface Task {
 **Adicionar nova feature de services** (mesma receita do mock):
 1. `src/services/<feature>/types/<verb-noun>.ts` — request/response/endpoint.
 2. `src/services/<feature>/services/<verb-noun>.usecase.ts` — classe.
-3. `src/services/<feature>/index.ts` — `createXxxServices(httpClient)` factory.
-4. Espalhar a factory em `src/services/registry.ts` (`...createXxxServices(deps.httpClient)`).
+3. `src/services/<feature>/index.ts` — `register<Feature> = (http) => (b) => b.register(...)` builder.
+4. Adicionar `.ns("<feature>", register<Feature>(httpClient))` em `createServices` (`src/services/index.ts`).
 5. Se for endpoint mockado: adicionar handler em `src/http/mock.client.ts`.

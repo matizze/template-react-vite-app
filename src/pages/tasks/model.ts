@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation } from 'wouter'
-import { useServices } from '@/hooks/use-services'
+import { useRepositories } from '@/providers/repository'
 import { useAuth } from '@/hooks/use-auth'
+import type { CreateTaskSchema } from '@/schemas'
 
 const TASKS_QUERY_KEY = ['tasks'] as const
 
@@ -10,36 +11,35 @@ export function useTasksModel() {
   const [, navigate] = useLocation()
   const queryClient = useQueryClient()
   const { user, signOut, isSigningOut } = useAuth()
-  const { listTasks, createTask, toggleTask, deleteTask } = useServices()
+  const { tasks } = useRepositories()
 
   const tasksQuery = useQuery({
     queryKey: TASKS_QUERY_KEY,
-    queryFn: () => listTasks.execute(),
+    queryFn: () => tasks.list(),
   })
 
-  const tasks = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data])
+  const list = useMemo(() => tasksQuery.data ?? [], [tasksQuery.data])
 
   const stats = useMemo(() => {
-    const completed = tasks.filter((t) => t.completed).length
-    return { total: tasks.length, completed, pending: tasks.length - completed }
-  }, [tasks])
+    const completed = list.filter((t) => t.completed).length
+    return { total: list.length, completed, pending: list.length - completed }
+  }, [list])
 
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
 
   const createMutation = useMutation({
-    mutationFn: (input: { title: string; description: string }) =>
-      createTask.execute(input),
+    mutationFn: (input: CreateTaskSchema) => tasks.create(input),
     onSuccess: invalidate,
   })
 
   const toggleMutation = useMutation({
-    mutationFn: (id: string) => toggleTask.execute({ id }),
+    mutationFn: (id: string) => tasks.toggle(id),
     onSuccess: invalidate,
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteTask.execute({ id }),
+    mutationFn: (id: string) => tasks.delete(id),
     onSuccess: invalidate,
   })
 
@@ -50,15 +50,14 @@ export function useTasksModel() {
 
   return {
     user,
-    tasks,
+    tasks: list,
     stats,
     isLoading: tasksQuery.isLoading,
     isMutating:
       createMutation.isPending ||
       toggleMutation.isPending ||
       deleteMutation.isPending,
-    handleCreate: (data: { title: string; description: string }) =>
-      createMutation.mutate(data),
+    handleCreate: (data: CreateTaskSchema) => createMutation.mutate(data),
     handleToggle: (id: string) => toggleMutation.mutate(id),
     handleRemove: (id: string) => deleteMutation.mutate(id),
     handleSignOut,

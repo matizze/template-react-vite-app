@@ -1,7 +1,7 @@
 # Providers, Context e Injeção de Dependências
 
 ## Composição de providers
-Em `src/providers/app.provider.tsx`, dois providers aninhados (sem BottomTab — removido na transição para boilerplate):
+Em `src/providers/app.provider.tsx`, dois providers aninhados:
 
 ```tsx
 <QueryProvider>
@@ -21,21 +21,42 @@ Padrão **Context + DI manual** com `useMemo` para singletons. Importante: o **D
 ```ts
 const db = useMemo(() => AppDB.getInstance({ tasks: 'id, user_id' }), [])
 const httpClient = useMemo(() => MockHttpClient.create({ db }), [db])
-const services = useMemo(() => createAllServices({ httpClient }), [httpClient])
+const services = useMemo(() => createServices({ httpClient }), [httpClient])
 ```
 
-- `services` é o retorno de `createAllServices({ httpClient })` em `src/services/registry.ts`, que faz spread de `createAuthServices(httpClient)` + `createTaskServices(httpClient)`.
-- Tipagem do context: `ServiceContextProps = ReturnType<typeof createAllServices>` — sem duplicar interface.
+- `services` é o retorno de `createServices({ httpClient })` em `src/services/index.ts`.
+- `createServices` usa `new ServiceFactory().ns("auth", registerAuth(http)).ns("tasks", registerTasks(http)).build()`.
+- Tipagem do context: `ServiceContextProps = Services` (= `ReturnType<typeof createServices>`) — sem duplicar interface.
 - Default value do `createContext`: cast `{} as ServiceContextProps`.
 
-> Nota arquitetural: hoje **só o HTTP client conhece o DB** (porque o mock simula um servidor que persiste). Em produção real, os use-cases continuam falando só com `IHttpClient`; o DB sai do registry. Se você quiser persistência local de leitura/escrita direta (cache, drafts, fila offline), reintroduza `db` como dep no `RegistryDeps` e injete em use-cases específicos.
+> Nota arquitetural: hoje **só o HTTP client conhece o DB** (porque o mock simula um servidor que persiste). Em produção real, os use-cases continuam falando só com `IHttpClient`; o DB sai do registry. Se quiser persistência local de leitura/escrita direta (cache, drafts, fila offline), passe o `db` como dep adicional via `ServiceFactoryDeps` e use nos registers.
 
-## Hook `useServices` (`src/hooks/use-services.ts`)
-Centraliza o consumo do `ServiceContext`. Páginas/components destruturam direto o use-case que precisam:
+## ServiceFactory (`src/lib/factory.ts`)
+Infra genérica do padrão Factory com namespacing tipado. Duas classes:
 
 ```ts
-const { signIn, listTasks, createTask } = useServices()
+class NamespaceBuilder<T> {
+  register<K, V>(key: K, instance: V): NamespaceBuilder<T & { [P in K]: V }>
+  build(): T
+}
+
+class ServiceFactory<T> {
+  ns<K, NS>(name: K, fn: (b: NamespaceBuilder) => NamespaceBuilder<NS>): ServiceFactory<T & { [P in K]: NS }>
+  build(): T
+}
 ```
+
+Mora em `lib/` por ser infra reusável (não conhece domínio nem HTTP). Cada `register` acumula tipos via interseção; `ns` aninha namespaces. Resultado de `.build()` é objeto plano com inferência total.
+
+## Hook `useServices` (`src/hooks/use-services.ts`)
+Centraliza o consumo do `ServiceContext`. Páginas/components destruturam pelo namespace:
+
+```ts
+const { signIn, signOut, getCurrentUser } = useServices().auth
+const { list, create, toggle, delete: remove } = useServices().tasks
+```
+
+> `delete` é palavra reservada — use rename no destructure (`delete: remove`).
 
 ## Hook `useAuth` (`src/hooks/use-auth.ts`)
 Wrapper que combina `useQuery` (para `getCurrentUser`) + `useMutation` (para `signIn` e `signOut`). Não há `AuthProvider` separado — o estado vive no cache do TanStack Query, indexado por `['auth', 'me']`.
@@ -72,8 +93,8 @@ Guard simples que envolve children. Se `!isAuthenticated && !isLoading`, navega 
 ## Padrão para adicionar novo serviço
 1. Criar use-case em `src/services/<dominio>/services/<acao>.usecase.ts` implementando `IUseCase<Input, Output>`.
 2. Definir tipos em `src/services/<dominio>/types/<acao>.ts` (Request/Response + `ENDPOINT` quando HTTP).
-3. Registrar em `src/services/<dominio>/index.ts` (factory `create<Dominio>Services(deps)` retornando objeto com a instância).
-4. Plugar em `src/services/registry.ts` via spread.
-5. Consumir em qualquer hook `model.ts` via `useServices()`.
+3. Adicionar uma linha `.register("<verb>", new <Verb>UseCase(http))` no `register<Domain>` do `src/services/<dominio>/index.ts`.
+4. Se for um domínio novo, criar `src/services/<dominio>/index.ts` com `register<Domain> = (http) => (b) => b.register(...)` e adicionar `.ns("<dominio>", register<Domain>(http))` em `createServices` (`src/services/index.ts`).
+5. Consumir em qualquer hook `model.ts` via `useServices().<dominio>.<verb>`.
 
-Sem boilerplate de tipagem manual no Context — tudo é inferido pela factory.
+Sem boilerplate de tipagem manual no Context — tudo é inferido pela ServiceFactory.

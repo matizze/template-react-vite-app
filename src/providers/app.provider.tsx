@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react'
-import { QueryProvider } from './query.provider'
-import { ServiceProvider } from './service.provider'
+import type { ReactNode } from "react";
+import { QueryProvider } from "./commons/query.provider";
+import { RepositoryProvider } from "./repository";
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  return (
-    <QueryProvider>
-      <ServiceProvider>{children}</ServiceProvider>
-    </QueryProvider>
-  )
+    return (
+        <QueryProvider>
+            <RepositoryProvider>{children}</RepositoryProvider>
+        </QueryProvider>
+    );
 }
