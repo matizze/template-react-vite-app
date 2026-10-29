@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation } from 'wouter'
+import { toast } from 'sonner'
 import { useRepositories } from '@/providers/repository'
 import { useAuth } from '@/hooks/use-auth'
 import type { CreateTaskSchema, TaskSchema } from '@/schemas'
@@ -44,6 +45,7 @@ export function useTasksModel() {
     },
     onError: (_error, _id, context) => {
       queryClient.setQueryData(TASKS_QUERY_KEY, context?.previous)
+      toast.error("Couldn't update task. Please try again.")
     },
     onSettled: invalidate,
   })
