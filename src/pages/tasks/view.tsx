@@ -14,6 +14,7 @@ export function TasksView(props: ReturnType<typeof useTasksModel>) {
     tasks,
     stats,
     isLoading,
+    isCreating,
     isMutating,
     handleCreate,
     handleToggle,
@@ -54,7 +55,7 @@ export function TasksView(props: ReturnType<typeof useTasksModel>) {
             <CardTitle className="text-base">New task</CardTitle>
           </CardHeader>
           <CardContent>
-            <TaskForm onSubmit={handleCreate} isSubmitting={isMutating} />
+            <TaskForm onSubmit={handleCreate} isSubmitting={isCreating} />
           </CardContent>
         </Card>
 

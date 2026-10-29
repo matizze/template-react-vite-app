@@ -52,6 +52,7 @@ export function useTasksModel() {
     tasks: list,
     stats,
     isLoading: tasksQuery.isLoading,
+    isCreating: createMutation.isPending,
     isMutating: createMutation.isPending || toggleMutation.isPending || deleteMutation.isPending,
     handleCreate: (data: CreateTaskSchema) => createMutation.mutate(data),
     handleToggle: (id: string) => toggleMutation.mutate(id),
