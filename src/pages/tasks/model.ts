@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation } from 'wouter'
 import { useRepositories } from '@/providers/repository'
 import { useAuth } from '@/hooks/use-auth'
-import type { CreateTaskSchema } from '@/schemas'
+import type { CreateTaskSchema, TaskSchema } from '@/schemas'
 
 const TASKS_QUERY_KEY = ['tasks'] as const
 
@@ -34,7 +34,18 @@ export function useTasksModel() {
 
   const toggleMutation = useMutation({
     mutationFn: (id: string) => tasks.toggle(id),
-    onSuccess: invalidate,
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: TASKS_QUERY_KEY })
+      const previous = queryClient.getQueryData<TaskSchema[]>(TASKS_QUERY_KEY)
+      queryClient.setQueryData<TaskSchema[]>(TASKS_QUERY_KEY, (old) =>
+        old?.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
+      )
+      return { previous }
+    },
+    onError: (_error, _id, context) => {
+      queryClient.setQueryData(TASKS_QUERY_KEY, context?.previous)
+    },
+    onSettled: invalidate,
   })
 
   const deleteMutation = useMutation({
@@ -53,7 +64,7 @@ export function useTasksModel() {
     stats,
     isLoading: tasksQuery.isLoading,
     isCreating: createMutation.isPending,
-    isMutating: createMutation.isPending || toggleMutation.isPending || deleteMutation.isPending,
+    isMutating: createMutation.isPending || deleteMutation.isPending,
     handleCreate: (data: CreateTaskSchema) => createMutation.mutate(data),
     handleToggle: (id: string) => toggleMutation.mutate(id),
     handleRemove: (id: string) => deleteMutation.mutate(id),
