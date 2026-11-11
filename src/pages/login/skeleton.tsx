@@ -1,18 +1,19 @@
-import { AppLayout } from '@/components/layout/app-layout'
 import { Skeleton } from '@/components/ui/skeleton'
 
+/** Renderizado dentro do AuthLayout enquanto a sessão é verificada. */
 export function LoginSkeleton() {
   return (
-    <AppLayout>
-      <main className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="flex w-full max-w-sm flex-col gap-4">
-          <Skeleton className="h-7 w-32" />
-          <Skeleton className="h-4 w-56" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      </main>
-    </AppLayout>
+    <div
+      aria-busy="true"
+      className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-5 py-10"
+    >
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-4 w-56" />
+      </div>
+      <Skeleton className="h-11 w-full rounded-[10px]" />
+      <Skeleton className="h-11 w-full rounded-[10px]" />
+      <Skeleton className="h-11 w-full rounded-[10px]" />
+    </div>
   )
 }

@@ -1,34 +1,29 @@
-'use client'
-
-import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { Tabs as TabsPrimitive } from 'radix-ui'
-
 import { cn } from '@/lib/utils'
+import { Tabs as TabsPrimitive } from '@base-ui/react/tabs'
+import { cva, type VariantProps } from 'class-variance-authority'
 
-function Tabs({
-  className,
-  orientation = 'horizontal',
-  ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+function Tabs({ className, orientation = 'horizontal', ...props }: TabsPrimitive.Root.Props) {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
       data-orientation={orientation}
-      orientation={orientation}
-      className={cn('group/tabs flex gap-2 data-[orientation=horizontal]:flex-col', className)}
+      className={cn(
+        'group/tabs flex gap-4 data-[orientation=horizontal]:flex-col data-[orientation=vertical]:flex-row',
+        className,
+      )}
       {...props}
     />
   )
 }
 
 const tabsListVariants = cva(
-  'group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-[orientation=horizontal]/tabs:h-9 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col data-[variant=line]:rounded-none',
+  'group/tabs-list inline-flex items-center text-gray-500 dark:text-gray-400',
   {
     variants: {
       variant: {
-        default: 'bg-muted',
-        line: 'gap-1 bg-transparent',
+        default:
+          'w-fit rounded-lg bg-gray-100 p-1 group-data-[orientation=horizontal]/tabs:h-11 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col dark:bg-gray-900',
+        line: 'w-full justify-start gap-2 border-b border-gray-200 bg-transparent p-0 group-data-[orientation=horizontal]/tabs:h-12 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col group-data-[orientation=vertical]/tabs:gap-1 group-data-[orientation=vertical]/tabs:border-e group-data-[orientation=vertical]/tabs:border-b-0 dark:border-gray-800',
       },
     },
     defaultVariants: {
@@ -41,7 +36,7 @@ function TabsList({
   className,
   variant = 'default',
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List> & VariantProps<typeof tabsListVariants>) {
+}: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
@@ -52,15 +47,26 @@ function TabsList({
   )
 }
 
-function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
   return (
-    <TabsPrimitive.Trigger
+    <TabsPrimitive.Tab
       data-slot="tabs-trigger"
       className={cn(
-        "text-foreground/60 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:text-muted-foreground dark:hover:text-foreground relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-all group-data-[orientation=vertical]/tabs:w-full group-data-[orientation=vertical]/tabs:justify-start focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 group-data-[variant=default]/tabs-list:data-[state=active]:shadow-sm group-data-[variant=line]/tabs-list:data-[state=active]:shadow-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        'group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:border-transparent dark:group-data-[variant=line]/tabs-list:data-[state=active]:bg-transparent',
-        'data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 dark:data-[state=active]:text-foreground',
-        'after:bg-foreground after:absolute after:opacity-0 after:transition-opacity group-data-[orientation=horizontal]/tabs:after:inset-x-0 group-data-[orientation=horizontal]/tabs:after:bottom-[-5px] group-data-[orientation=horizontal]/tabs:after:h-0.5 group-data-[orientation=vertical]/tabs:after:inset-y-0 group-data-[orientation=vertical]/tabs:after:-right-1 group-data-[orientation=vertical]/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-[state=active]:after:opacity-100',
+        'font-outfit relative inline-flex cursor-pointer items-center justify-center gap-1.5 text-sm font-medium whitespace-nowrap outline-hidden transition-colors duration-200 select-none',
+        'focus-visible:ring-brand-500/20 focus-visible:ring-3 focus-visible:outline-hidden',
+        'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50',
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        'has-data-[icon=inline-end]:pe-2 has-data-[icon=inline-start]:ps-2',
+        // Variant: Default
+        'group-data-[variant=default]/tabs-list:h-9 group-data-[variant=default]/tabs-list:rounded-md group-data-[variant=default]/tabs-list:px-3 group-data-[variant=default]/tabs-list:py-2',
+        'group-data-[variant=default]/tabs-list:text-gray-500 group-data-[variant=default]/tabs-list:hover:text-gray-900 dark:group-data-[variant=default]/tabs-list:text-gray-400 dark:group-data-[variant=default]/tabs-list:hover:text-white',
+        'group-data-[variant=default]/tabs-list:data-active:shadow-theme-xs group-data-[variant=default]/tabs-list:data-active:bg-white group-data-[variant=default]/tabs-list:data-active:text-gray-900 dark:group-data-[variant=default]/tabs-list:data-active:bg-white/3 dark:group-data-[variant=default]/tabs-list:data-active:text-white',
+        'group-data-[orientation=vertical]/tabs:group-data-[variant=default]/tabs-list:w-full group-data-[orientation=vertical]/tabs:group-data-[variant=default]/tabs-list:justify-start',
+        // Variant: Line
+        'group-data-[variant=line]/tabs-list:-mb-px group-data-[variant=line]/tabs-list:h-12 group-data-[variant=line]/tabs-list:rounded-none group-data-[variant=line]/tabs-list:border-b-2 group-data-[variant=line]/tabs-list:border-transparent group-data-[variant=line]/tabs-list:px-3',
+        'group-data-[variant=line]/tabs-list:text-gray-500 group-data-[variant=line]/tabs-list:hover:text-gray-700 dark:group-data-[variant=line]/tabs-list:text-gray-400 dark:group-data-[variant=line]/tabs-list:hover:text-gray-200',
+        'group-data-[variant=line]/tabs-list:data-active:border-brand-500 group-data-[variant=line]/tabs-list:data-active:text-brand-500 dark:group-data-[variant=line]/tabs-list:data-active:border-brand-400 dark:group-data-[variant=line]/tabs-list:data-active:text-brand-400 group-data-[variant=line]/tabs-list:data-active:bg-transparent group-data-[variant=line]/tabs-list:data-active:shadow-none',
+        'group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:-me-px group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:h-auto group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:w-full group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:justify-start group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:border-e-2 group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:border-b-0 group-data-[orientation=vertical]/tabs:group-data-[variant=line]/tabs-list:py-2.5',
         className,
       )}
       {...props}
@@ -68,14 +74,14 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
   )
 }
 
-function TabsContent({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) {
+function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   return (
-    <TabsPrimitive.Content
+    <TabsPrimitive.Panel
       data-slot="tabs-content"
-      className={cn('flex-1 outline-none', className)}
+      className={cn('flex-1 text-sm text-gray-500 outline-none dark:text-gray-400', className)}
       {...props}
     />
   )
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }
+export { Tabs, TabsContent, TabsList, tabsListVariants, TabsTrigger }

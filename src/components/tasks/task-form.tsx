@@ -1,17 +1,11 @@
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createTaskSchema, type CreateTaskSchema } from '@/schemas'
 import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { PlusIcon } from '@/icons'
 
 interface TaskFormProps {
   onSubmit: (data: CreateTaskSchema) => void
@@ -30,38 +24,44 @@ export function TaskForm({ onSubmit, isSubmitting }: TaskFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-3">
-        <FormField
+    <form onSubmit={form.handleSubmit(handleSubmit)} noValidate>
+      <FieldGroup>
+        <Controller
           control={form.control}
           name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input placeholder="What needs to be done?" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel>Title</FieldLabel>
+              <Input
+                placeholder="What needs to be done?"
+                aria-invalid={fieldState.invalid || undefined}
+                {...field}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
           )}
         />
-        <FormField
+        <Controller
           control={form.control}
           name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Optional details…" rows={3} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel>Description</FieldLabel>
+              <Textarea
+                placeholder="Optional details…"
+                rows={4}
+                aria-invalid={fieldState.invalid || undefined}
+                {...field}
+              />
+              <FieldError errors={[fieldState.error]} />
+            </Field>
           )}
         />
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          <PlusIcon />
           {isSubmitting ? 'Adding…' : 'Add task'}
         </Button>
-      </form>
-    </Form>
+      </FieldGroup>
+    </form>
   )
 }
