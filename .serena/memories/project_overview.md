@@ -6,19 +6,19 @@ Boilerplate React 19 + TypeScript + Vite com **autenticação mockada (JWT em co
 - HTTP cliente plugável (mock → real sem mexer nos use-cases)
 - Persistência local opcional via Dexie
 - Páginas no padrão MVVM (index/model/view/skeleton)
-- shadcn/ui (style `radix-luma`, baseColor `neutral`)
+- Visual padrão Matizze, baseado no TailAdmin (ver `components_and_conventions.md`)
 
 ## Stack principal
 
 - **React 19** + **TypeScript ~6.0** + **Vite 8**.
 - **React Compiler** habilitado via `@rolldown/plugin-babel` + `babel-plugin-react-compiler` (preset em `vite.config.ts`).
-- **Tailwind CSS 4** via `@tailwindcss/vite` (sem `tailwind.config.js`; tokens em `src/index.css` com `@theme inline`).
-- **shadcn/ui** style `radix-luma`, baseColor `neutral`, ícones `lucide` (`components.json`).
+- **Tailwind CSS 4** via `@tailwindcss/vite` + `@tailwindcss/forms` (sem `tailwind.config.js`; marca em `src/styles/theme.css`, estrutura em `src/index.css`).
+- **Primitivos UI do TailAdmin** sobre **Base UI** (`@base-ui/react`), ícones próprios em `src/icons`.
 - **Wouter** para roteamento (não react-router).
 - **TanStack Query v5** para queries/mutations.
 - **Dexie 4** (IndexedDB) como persistência local — por trás do mock HTTP para tasks.
-- **`@fontsource-variable/inter`** como fonte default.
-- **Radix UI** primitives (`radix-ui` v1.4 monolítico).
+- **`@fontsource-variable/outfit`** como fonte default.
+- **sonner** para toasts (estilizado no tema).
 
 ## Convenções de tooling
 
@@ -32,8 +32,9 @@ Boilerplate React 19 + TypeScript + Vite com **autenticação mockada (JWT em co
 ```
 src/
   main.tsx               # entry: monta <AppProvider><App/></AppProvider>
-  App.tsx                # router (Switch/Route do wouter) + ProtectedRoute
-  index.css              # tema shadcn neutral (oklch tokens), @theme inline
+  App.tsx                # router (wouter) + layouts (AuthLayout / Private = ProtectedRoute + AppLayout)
+  index.css              # Tailwind + escalas estruturais + @utility do menu
+  styles/theme.css       # identidade Matizze: fonte, paleta brand-*, tokens semânticos
   providers/
     app.provider.tsx     # composer (QueryProvider → ServiceProvider)
     query.provider.tsx

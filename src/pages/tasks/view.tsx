@@ -1,16 +1,16 @@
-import { LogOutIcon } from 'lucide-react'
-import { AppLayout } from '@/components/layout/app-layout'
-import { Navbar } from '@/components/layout/navbar'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ComponentCard } from '@/components/shared/component-card'
+import { PageBreadcrumb } from '@/components/shared/page-breadcrumb'
+import { PageMeta } from '@/components/shared/page-meta'
+import { StatCard } from '@/components/shared/stat-card'
 import { TaskForm } from '@/components/tasks/task-form'
 import { TaskList } from '@/components/tasks/task-list'
+import { Badge } from '@/components/ui/badge'
+import { CheckCircleIcon, HourglassIcon, ListIcon } from '@/icons'
 import type { useTasksModel } from './model'
 import { TasksSkeleton } from './skeleton'
 
 export function TasksView(props: ReturnType<typeof useTasksModel>) {
   const {
-    user,
     tasks,
     stats,
     isLoading,
@@ -19,66 +19,59 @@ export function TasksView(props: ReturnType<typeof useTasksModel>) {
     handleCreate,
     handleToggle,
     handleRemove,
-    handleSignOut,
-    isSigningOut,
   } = props
 
+  const completion = stats.total ? Math.round((stats.completed / stats.total) * 100) : 0
+
   return (
-    <AppLayout>
-      <Navbar
-        rightSlot={
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-          >
-            <LogOutIcon className="size-4" />
-            Sign out
-          </Button>
-        }
-      >
-        <div className="flex flex-col">
-          <span className="text-sm leading-tight font-semibold">Tasks</span>
-          {user && (
-            <span className="text-muted-foreground text-xs leading-tight">
-              {user.name} · {user.email}
-            </span>
-          )}
-        </div>
-      </Navbar>
+    <>
+      <PageMeta title="Tasks" description="Manage your tasks." />
+      <PageBreadcrumb pageTitle="Tasks" />
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">New task</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
+        <StatCard label="Total" value={stats.total} icon={<ListIcon />} />
+        <StatCard
+          label="Completed"
+          value={stats.completed}
+          icon={<CheckCircleIcon />}
+          trend={
+            <Badge color="success" size="sm">
+              {completion}%
+            </Badge>
+          }
+        />
+        <StatCard label="Pending" value={stats.pending} icon={<HourglassIcon />} />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-1">
+          <ComponentCard title="New task" description="Add something to your list.">
             <TaskForm onSubmit={handleCreate} isSubmitting={isCreating} />
-          </CardContent>
-        </Card>
+          </ComponentCard>
+        </div>
 
-        <section className="flex flex-col gap-3">
-          <header className="flex items-baseline justify-between">
-            <h2 className="text-base font-semibold">Your tasks</h2>
-            <p className="text-muted-foreground text-xs">
-              {stats.completed}/{stats.total} done
-            </p>
-          </header>
-
-          {isLoading ? (
-            <TasksSkeleton inline />
-          ) : (
-            <TaskList
-              tasks={tasks}
-              onToggle={handleToggle}
-              onRemove={handleRemove}
-              disabled={isMutating}
-            />
-          )}
-        </section>
-      </main>
-    </AppLayout>
+        <div className="xl:col-span-2">
+          <ComponentCard
+            title="Your tasks"
+            action={
+              <Badge color="gray" size="sm">
+                {stats.completed}/{stats.total} done
+              </Badge>
+            }
+          >
+            {isLoading ? (
+              <TasksSkeleton inline />
+            ) : (
+              <TaskList
+                tasks={tasks}
+                onToggle={handleToggle}
+                onRemove={handleRemove}
+                disabled={isMutating}
+              />
+            )}
+          </ComponentCard>
+        </div>
+      </div>
+    </>
   )
 }

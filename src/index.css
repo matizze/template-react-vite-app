@@ -1,60 +1,198 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
 @import './styles/theme.css';
+@plugin '@tailwindcss/forms';
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Escalas de layout e tipografia (TailAdmin). A identidade da marca fica em
+ * `styles/theme.css`; aqui só mora o que é estrutural.
+ */
+@theme {
+  --breakpoint-2xsm: 375px;
+  --breakpoint-xsm: 425px;
+  --breakpoint-3xl: 2000px;
+
+  --text-heading-one: 64px;
+  --text-heading-one--line-height: 80px;
+  --text-heading-two: 56px;
+  --text-heading-two--line-height: 72px;
+  --text-heading-three: 48px;
+  --text-heading-three--line-height: 60px;
+  --text-heading-four: 40px;
+  --text-heading-four--line-height: 48px;
+  --text-heading-five: 32px;
+  --text-heading-five--line-height: 40px;
+  --text-heading-six: 24px;
+  --text-heading-six--line-height: 32px;
+
+  --text-title-2xl: 72px;
+  --text-title-2xl--line-height: 90px;
+  --text-title-md: 28px;
+  --text-title-md--line-height: 36px;
+  --text-title-lg: 20px;
+  --text-title-lg--line-height: 30px;
+  --text-title-sm: 18px;
+  --text-title-sm--line-height: 28px;
+
+  --text-theme-xl: 20px;
+  --text-theme-xl--line-height: 30px;
+  --text-theme-sm: 14px;
+  --text-theme-sm--line-height: 20px;
+  --text-theme-xs: 12px;
+  --text-theme-xs--line-height: 18px;
+
+  --color-black: #101828;
+
+  --shadow-theme-xs: 0px 1px 2px 0px rgb(16 24 40 / 0.05);
+  --shadow-theme-sm: 0px 1px 3px 0px rgb(16 24 40 / 0.1), 0px 1px 2px 0px rgb(16 24 40 / 0.06);
+  --shadow-theme-md: 0px 4px 8px -2px rgb(16 24 40 / 0.1), 0px 2px 4px -2px rgb(16 24 40 / 0.06);
+  --shadow-theme-lg: 0px 12px 16px -4px rgb(16 24 40 / 0.08), 0px 4px 6px -2px rgb(16 24 40 / 0.03);
+  --shadow-theme-xl: 0px 20px 24px -4px rgb(16 24 40 / 0.08), 0px 8px 8px -4px rgb(16 24 40 / 0.03);
+  --shadow-tooltip: 0px 4px 6px -2px rgb(16 24 40 / 0.05), -8px 0px 20px 8px rgb(16 24 40 / 0.05);
+
+  --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+
+  @keyframes caret-blink {
+    0%,
+    70%,
+    100% {
+      opacity: 1;
+    }
+    20%,
+    50% {
+      opacity: 0;
+    }
+  }
+}
+
+/* Mapeia os tokens semânticos (theme.css) para utilities: bg-background, text-foreground, ... */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
+  --color-muted-foreground: var(--muted-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
   --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-border: var(--border);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
   }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+
   html,
   body,
   #root {
-    height: 100%;
+    min-height: 100%;
   }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply relative z-1 bg-gray-50 font-sans font-normal text-gray-800 antialiased dark:bg-gray-900 dark:text-white/90;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Menu lateral                                                         */
+/* ------------------------------------------------------------------ */
+
+@utility menu-item {
+  @apply relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium;
+}
+
+@utility menu-item-active {
+  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/12 dark:text-brand-400;
+}
+
+@utility menu-item-inactive {
+  @apply text-gray-700 group-hover:text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+}
+
+@utility menu-item-icon-active {
+  @apply text-brand-500 dark:text-brand-400;
+}
+
+@utility menu-item-icon-inactive {
+  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+}
+
+@utility menu-dropdown-item {
+  @apply relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium;
+}
+
+@utility menu-dropdown-item-active {
+  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/12 dark:text-brand-400;
+}
+
+@utility menu-dropdown-item-inactive {
+  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+}
+
+@utility menu-dropdown-badge {
+  @apply block rounded-full px-2.5 py-0.5 text-xs font-medium text-green-600 uppercase dark:text-green-500;
+}
+
+@utility menu-dropdown-badge-active {
+  @apply bg-green-100 dark:bg-green-500/20;
+}
+
+@utility menu-dropdown-badge-inactive {
+  @apply bg-green-50 group-hover:bg-green-100 dark:bg-green-500/15 dark:group-hover:bg-green-500/20;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scrollbars                                                           */
+/* ------------------------------------------------------------------ */
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    @apply size-1.5;
+  }
+
+  &::-webkit-scrollbar-track {
+    @apply rounded-full;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-gray-200 dark:bg-gray-700;
+  }
+}
+
+@layer utilities {
+  /* Remove o ícone nativo dos inputs de data/hora */
+  input[type='date']::-webkit-inner-spin-button,
+  input[type='time']::-webkit-inner-spin-button,
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='time']::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
   }
 }

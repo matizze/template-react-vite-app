@@ -1,18 +1,18 @@
-import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signInSchema, type SignInSchema } from '@/schemas'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group'
+import { EyeCloseIcon, EyeIcon, OctagonAlertIcon } from '@/icons'
 
 interface SignInFormProps {
   onSubmit: (data: SignInSchema) => void
@@ -21,62 +21,97 @@ interface SignInFormProps {
 }
 
 export function SignInForm({ onSubmit, isSubmitting, error }: SignInFormProps) {
+  const [showPassword, setShowPassword] = useState(false)
   const form = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: '', password: '' },
+    mode: 'onTouched',
   })
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Sign in</CardTitle>
-        <CardDescription>
+    <div className="w-full">
+      <div className="mb-5 sm:mb-8">
+        <h1 className="text-title-sm sm:text-title-md mb-2 font-semibold text-gray-800 dark:text-white/90">
+          Sign in
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           Use <code className="font-mono">admin@app.com</code> /{' '}
           <code className="font-mono">password</code>
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" autoComplete="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" autoComplete="current-password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        </p>
+      </div>
 
-            {error?.message && (
-              <Alert variant="destructive">
-                <AlertDescription>{error?.message}</AlertDescription>
-              </Alert>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+        <FieldGroup>
+          <Controller
+            control={form.control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>
+                  Email <span className="text-red-500">*</span>
+                </FieldLabel>
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@company.com"
+                  aria-invalid={fieldState.invalid || undefined}
+                  {...field}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
             )}
+          />
 
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <Controller
+            control={form.control}
+            name="password"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>
+                  Password <span className="text-red-500">*</span>
+                </FieldLabel>
+                <InputGroup>
+                  <InputGroupInput
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    aria-invalid={fieldState.invalid || undefined}
+                    {...field}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      size="icon-xs"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="text-gray-500 dark:text-gray-400"
+                    >
+                      {showPassword ? (
+                        <EyeIcon className="fill-current" />
+                      ) : (
+                        <EyeCloseIcon className="fill-current" />
+                      )}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+
+          {error?.message && (
+            <Alert variant="destructive">
+              <OctagonAlertIcon />
+              <AlertDescription className="text-red-600 dark:text-red-400">
+                {error.message}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button type="submit" size="lg" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? 'Signing in…' : 'Sign in'}
+          </Button>
+        </FieldGroup>
+      </form>
+    </div>
   )
 }

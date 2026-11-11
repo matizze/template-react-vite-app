@@ -1,17 +1,13 @@
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useLocation } from 'wouter'
 import { toast } from 'sonner'
 import { useRepositories } from '@/providers/repository'
-import { useAuth } from '@/hooks/use-auth'
 import type { CreateTaskSchema, TaskSchema } from '@/schemas'
 
 const TASKS_QUERY_KEY = ['tasks'] as const
 
 export function useTasksModel() {
-  const [, navigate] = useLocation()
   const queryClient = useQueryClient()
-  const { user, signOut, isSigningOut } = useAuth()
   const { tasks } = useRepositories()
 
   const tasksQuery = useQuery({
@@ -55,13 +51,7 @@ export function useTasksModel() {
     onSuccess: invalidate,
   })
 
-  async function handleSignOut() {
-    await signOut()
-    navigate('/login', { replace: true })
-  }
-
   return {
-    user,
     tasks: list,
     stats,
     isLoading: tasksQuery.isLoading,
@@ -70,7 +60,5 @@ export function useTasksModel() {
     handleCreate: (data: CreateTaskSchema) => createMutation.mutate(data),
     handleToggle: (id: string) => toggleMutation.mutate(id),
     handleRemove: (id: string) => deleteMutation.mutate(id),
-    handleSignOut,
-    isSigningOut,
   }
 }

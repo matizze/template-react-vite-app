@@ -8,19 +8,21 @@ Lib usada: `wouter` v3 (alternativa ultra-leve ao react-router).
 
 ```tsx
 <Switch>
-  <Route path="/login" component={LoginPage} />
+  <Route path="/login">
+    <AuthLayout>
+      <LoginPage />
+    </AuthLayout>
+  </Route>
   <Route path="/tasks">
-    <ProtectedRoute>
+    <Private>
+      {/* Private = ProtectedRoute + AppLayout */}
       <TasksPage />
-    </ProtectedRoute>
+    </Private>
   </Route>
   <Route path="/">
     <Redirect to="/tasks" />
   </Route>
-  <Route>
-    <NotFound />
-  </Route>{' '}
-  {/* fallback 404 */}
+  <Route component={NotFoundPage} /> {/* fallback 404 (pages/not-found) */}
 </Switch>
 ```
 
@@ -34,7 +36,7 @@ Lib usada: `wouter` v3 (alternativa ultra-leve ao react-router).
 
 - Rotas em **inglês** (`/login`, `/tasks`).
 - Navegação **a partir do model** (não do view).
-- Rotas protegidas envolvidas com `<ProtectedRoute>`.
+- Rotas protegidas envolvidas com `<Private>` (em `App.tsx`), que aplica `ProtectedRoute` + `AppLayout`.
 
 ## Auth via cookie (JWT mock)
 

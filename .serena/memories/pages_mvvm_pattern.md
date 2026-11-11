@@ -92,22 +92,29 @@ export function useTasksModel() {
 - Tipo das props **sempre** é `ReturnType<typeof useXxxModel>`. Sem interface manual.
 - Faz **destructuring** logo no início.
 - Decide entre `<XxxSkeleton />`, `<XxxErrorSkeleton />` e o conteúdo real, baseado nos flags da query (`isLoading`, `isError`, `data`).
-- Usa `<AppLayout>` + `<Navbar>` + componentes de domínio.
+- Renderiza **só o conteúdo da página**: o shell (sidebar + header) é o `AppLayout`, montado uma vez em `App.tsx`. Páginas de auth ficam dentro do `AuthLayout`, também aplicado em `App.tsx`.
+- Abre com `<PageMeta title="..." />` + `<PageBreadcrumb pageTitle="..." />`, depois blocos `ComponentCard`/`StatCard` + componentes de domínio.
 - Não chama hooks (em geral).
 - Não conhece `useServices` nem `useQuery`.
 
 ```tsx
 export function TasksView(props: ReturnType<typeof useTasksModel>) {
-  const { user, tasks, stats, isLoading /* ... */ } = props
-  return <AppLayout>{/* ... */}</AppLayout>
+  const { tasks, stats, isLoading /* ... */ } = props
+  return (
+    <>
+      <PageMeta title="Tasks" />
+      <PageBreadcrumb pageTitle="Tasks" />
+      {/* ... */}
+    </>
+  )
 }
 ```
 
 ## skeleton.tsx — loading + error
 
-- Mantém o mesmo layout (AppLayout + Navbar) para evitar flash.
-- Pode aceitar `inline?: boolean` para variantes embutidas (ex.: `TasksSkeleton inline` substitui só a lista, sem refazer o shell).
-- Usa `<Skeleton />` do shadcn.
+- Só o conteúdo (o shell já está na tela); imita o grid real da view para evitar salto de layout.
+- Pode aceitar `inline?: boolean` para variantes embutidas (ex.: `TasksSkeleton inline` substitui só a lista).
+- Usa `<Skeleton />` de `@/components/ui/skeleton`.
 
 ## Convenções de queryKey
 
@@ -140,4 +147,5 @@ const createMutation = useMutation({
 2. `src/pages/<feature>/model.ts` — hook `useXxxModel()`.
 3. `src/pages/<feature>/view.tsx` — `XxxView(props: ReturnType<typeof useXxxModel>)`.
 4. `src/pages/<feature>/skeleton.tsx` — `XxxSkeleton`.
-5. Adicionar `<Route>` em `src/App.tsx` (envolva com `<ProtectedRoute>` se exigir auth).
+5. Adicionar `<Route>` em `src/App.tsx` — dentro de `<Private>` (guard + AppLayout) se exigir auth, ou `<AuthLayout>` se for tela de autenticação.
+6. Adicionar o item no menu em `src/components/layout/app-layout/sidebar/data.tsx`.

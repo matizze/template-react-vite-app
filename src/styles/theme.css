@@ -1,87 +1,74 @@
 /*
- * Tema visual do app.
+ * Tema visual Matizze (base: TailAdmin).
  *
- * Toda a identidade visual (cores, raio, fontes) vive neste arquivo. Os componentes
- * em `src/components/ui` consomem apenas estes tokens, então trocar o visual do app
- * significa editar ou substituir este arquivo, sem tocar nos componentes.
+ * Toda a identidade visual da marca vive aqui: fonte, paleta `brand-*` e os tokens
+ * semânticos. Para adaptar o template a um produto, troque os valores deste arquivo;
+ * os componentes em `src/components/ui` só consomem estes tokens e a escala `gray-*`
+ * padrão do Tailwind.
  *
- * Os nomes das variáveis seguem o padrão do shadcn/ui; não renomeie, apenas troque os valores.
+ * - `brand-*`: cor principal (botões, links, item ativo do menu, foco de inputs).
+ *   Mantenha a escala completa 50→950; o 500 é o tom "principal".
+ * - Tokens semânticos (`--background`, `--foreground`, ...): compatibilidade com
+ *   componentes no padrão shadcn. Não renomeie, apenas troque os valores.
  */
 
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/outfit';
+
+@theme {
+  --font-sans: 'Outfit Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-outfit: 'Outfit Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
+
+  --color-brand-50: #ecf3ff;
+  --color-brand-100: #dde9ff;
+  --color-brand-200: #c2d6ff;
+  --color-brand-300: #9cb9ff;
+  --color-brand-400: #7592ff;
+  --color-brand-500: #465fff;
+  --color-brand-600: #3641f5;
+  --color-brand-700: #2a31d8;
+  --color-brand-800: #252dae;
+  --color-brand-900: #262e89;
+  --color-brand-950: #161950;
+
+  --shadow-focus-ring: 0px 0px 0px 4px rgb(70 95 255 / 0.12);
+}
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: var(--color-gray-50);
+  --foreground: var(--color-gray-800);
+  --muted-foreground: var(--color-gray-500);
+  --primary: var(--color-brand-500);
+  --primary-foreground: var(--color-white);
+  --input: var(--color-gray-300);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-gray-800);
+  --border: var(--color-gray-200);
+  --radius: 0.75rem;
+
+  --sidebar: var(--color-white);
+  --sidebar-foreground: var(--color-gray-700);
+  --sidebar-accent: var(--color-gray-100);
+  --sidebar-accent-foreground: var(--color-gray-800);
+  --sidebar-border: var(--color-gray-200);
+  --sidebar-ring: var(--color-brand-300);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
+  --background: var(--color-gray-900);
+  --foreground: rgb(255 255 255 / 0.9);
+  --muted-foreground: var(--color-gray-400);
+  --primary: var(--color-brand-500);
+  --primary-foreground: var(--color-white);
+  --input: var(--color-gray-700);
+  --popover: var(--color-gray-900);
+  --popover-foreground: rgb(255 255 255 / 0.9);
+  --border: var(--color-gray-800);
 
-@theme inline {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, monospace;
+  --sidebar: var(--color-gray-900);
+  --sidebar-foreground: var(--color-gray-300);
+  --sidebar-accent: rgb(255 255 255 / 0.05);
+  --sidebar-accent-foreground: var(--color-gray-100);
+  --sidebar-border: var(--color-gray-800);
+  --sidebar-ring: var(--color-brand-500);
 }
